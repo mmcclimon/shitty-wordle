@@ -80,7 +80,10 @@ const Game = class {
           break;
         case MISPLACED:
           // improve this
-          words = words.filter(w => w.includes(char));
+          idx = [0, 1, 2, 3, 4].find(
+            i => guess.charAt(i) === char && results[i] === MISPLACED,
+          );
+          words = words.filter(w => w.charAt(idx) !== char);
           break;
         case CORRECT:
           idx = [0, 1, 2, 3, 4].find(
@@ -90,26 +93,49 @@ const Game = class {
       }
     }
 
+    guess.split('').forEach((char, idx) => {
+      if (results[idx] === WRONG) {
+        // console.log(`removing all words with ${char} at i=${idx}`);
+        words = words.filter(w => w.charAt(idx) !== char);
+      }
+    });
+
     return words.filter(w => w !== guess);
   }
 
   #checkGuess (guess) {
-    const seen = new Map();
-    const results = [];
+    const results = [null, null, null, null, null];
 
-    guess.split('').forEach((char, idx) => {
-      const prev = seen.get(char) ?? -1;
-      const foundIdx = this.#target.indexOf(char, prev + 1);
+    // first mark correct letters, then go through everything else
+    const guessChars  = guess.split('');
+    const targetChars = this.#target.split('');
 
-      if (foundIdx !== -1) {
-        seen.set(char, foundIdx);
+    targetChars.forEach((char, idx) => {
+      if (guess.charAt(idx) === char) {
+        results[idx] = CORRECT;
+        guessChars[idx] = null;
+        targetChars[idx] = null;
+      }
+    });
+
+    // here, all the correct letters are marked, and we have some letters that
+    // aren't in the word at all, and some that are in the wrong place
+    // console.log({ guessChars, targetChars, results });
+
+    guessChars.forEach((char, idx) => {
+      if (char === null) {
+        // already accounted for
+        return;
       }
 
-      /* eslint-disable indent */
-      results[idx] = foundIdx === -1  ? WRONG
-                   : foundIdx === idx ? CORRECT
-                   : MISPLACED;
-      /* eslint-enable indent */
+      const foundIdx = targetChars.indexOf(char);
+
+      if (foundIdx !== -1) {
+        results[idx] = MISPLACED;
+        targetChars[foundIdx] = null;
+      } else {
+        results[idx] = WRONG;
+      }
     });
 
     return results;
