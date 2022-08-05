@@ -3,9 +3,14 @@
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
-  "scripts": {}
+  "scripts": {},
   "keywords": [],
   "author": "Michael McClimon <michael@mcclimon.org>",
-  "type": "module"
-  "license": "MIT"
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.21.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-promise": "^6.0.0"
+  }
 }
