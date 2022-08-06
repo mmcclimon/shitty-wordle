@@ -1,3 +1,5 @@
+import process from 'node:process';
+
 const WRONG = 0;
 const MISPLACED = 1;
 const CORRECT = 2;
@@ -40,6 +42,7 @@ const Game = class {
   run () {
     let attempts = 1;
     const guesses = [];
+    const startT = process.hrtime.bigint();
 
     while (this.wordlist.length > 0) {
       const guess = randomElement(this.wordlist);
@@ -53,7 +56,10 @@ const Game = class {
       }
 
       if (isWin(r)) {
-        let msg = `win in ${attempts}`;
+        const endT = process.hrtime.bigint();
+        const msec = Number(endT - startT) / 1e6;
+        let msg = `win in ${attempts} (${msec.toFixed(2)}ms)`;
+
         if (this.format === 'compact') {
           msg += `: ${guesses.join(', ')}`;
         }
