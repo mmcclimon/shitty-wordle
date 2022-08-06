@@ -37,6 +37,7 @@ const Game = class {
     this.wordlist = words.slice();
     this.#target = randomElement(words);
     this.format = args.compact ? 'compact' : 'expanded';
+    this.firstGuess = args.firstGuess || randomElement(this.wordlist);
   }
 
   run () {
@@ -44,8 +45,9 @@ const Game = class {
     const guesses = [];
     const startT = process.hrtime.bigint();
 
+    let guess = this.firstGuess;
+
     while (this.wordlist.length > 0) {
-      const guess = randomElement(this.wordlist);
       const r = this.#checkGuess(guess);
 
       const formatted = formatGuess(guess, r);
@@ -76,6 +78,7 @@ const Game = class {
       }
 
       attempts++;
+      guess = randomElement(this.wordlist);
     }
 
     console.log(`whoa! lost game: target=${this.#target}, guesses=${guesses}`);
