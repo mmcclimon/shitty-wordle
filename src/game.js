@@ -67,7 +67,7 @@ const Game = class {
         }
 
         console.log(msg);
-        return;
+        return attempts;
       } else {
         this.wordlist = this.#filterWordList(guess, r);
       }
