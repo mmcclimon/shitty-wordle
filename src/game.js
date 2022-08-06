@@ -8,7 +8,7 @@ const isWin = results => results.every(el => el === CORRECT);
 
 const letterCount = (word, char) => word.split('').filter(c => c === char).length;
 
-const printGuess = (guess, results) => {
+const formatGuess = (guess, results) => {
   let s = '';
 
   guess.split('').forEach((char, idx) => {
@@ -25,15 +25,16 @@ const printGuess = (guess, results) => {
     };
   });
 
-  console.log(s);
+  return s;
 };
 
 const Game = class {
   #target;
 
-  constructor (words) {
+  constructor (words, args = {}) {
     this.wordlist = words.slice();
     this.#target = randomElement(words);
+    this.format = args.compact ? 'compact' : 'expanded';
   }
 
   run () {
@@ -42,13 +43,22 @@ const Game = class {
 
     while (this.wordlist.length > 0) {
       const guess = randomElement(this.wordlist);
-      guesses.push(guess);
       const r = this.#checkGuess(guess);
 
-      printGuess(guess, r);
+      const formatted = formatGuess(guess, r);
+      guesses.push(formatted);
+
+      if (this.format === 'expanded') {
+        console.log(formatted);
+      }
 
       if (isWin(r)) {
-        console.log(`won in ${attempts}`);
+        let msg = `win in ${attempts}`;
+        if (this.format === 'compact') {
+          msg += `: ${guesses.join(', ')}`;
+        }
+
+        console.log(msg);
         return;
       } else {
         this.wordlist = this.#filterWordList(guess, r);
