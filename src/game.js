@@ -1,12 +1,13 @@
 import process from 'node:process';
+import { checkGuess, isWin } from './checker.js';
 
-const WRONG = 0;
-const MISPLACED = 1;
-const CORRECT = 2;
+const Score = Object.freeze({
+  WRONG: 0,
+  MISPLACED: 1,
+  CORRECT: 2,
+});
 
 const randomElement = arr => arr[Math.floor(Math.random() * arr.length)];
-
-const isWin = results => results.every(el => el === CORRECT);
 
 const letterCount = (word, char) => word.split('').filter(c => c === char).length;
 
@@ -15,13 +16,13 @@ const formatGuess = (guess, results) => {
 
   guess.split('').forEach((char, idx) => {
     switch (results[idx]) {
-      case WRONG:
+      case Score.WRONG:
         s += char;
         break;
-      case MISPLACED:
+      case Score.MISPLACED:
         s += '\x1b[38;5;172m' + char + '\x1b[0m';
         break;
-      case CORRECT:
+      case Score.CORRECT:
         s += '\x1b[38;5;34m' + char + '\x1b[0m';
         break;
     };
@@ -48,7 +49,7 @@ const Game = class {
     let guess = this.firstGuess;
 
     while (this.wordlist.length > 0) {
-      const r = this.#checkGuess(guess);
+      const r = checkGuess(this.#target, guess);
 
       const formatted = formatGuess(guess, r);
       guesses.push(formatted);
@@ -99,7 +100,7 @@ const Game = class {
         inWordCounts.set(char, (inWordCounts.get(char) || 0) + 1);
       }
 
-      if (results[idx] === CORRECT) {
+      if (results[idx] === Score.CORRECT) {
         words = words.filter(w => w.charAt(idx) === char);
       }
     });
@@ -117,50 +118,13 @@ const Game = class {
     // we need to do something with our misplaced letters; this does more work
     // than is strictly necessary
     guessChars.forEach((char, idx) => {
-      if (results[idx] === MISPLACED) {
+      if (results[idx] === Score.MISPLACED) {
         words = words.filter(w => letterCount(w, char) > 0 && w.charAt(idx) !== char);
       }
     });
 
     return words;
   }
-
-  #checkGuess (guess) {
-    const results = [null, null, null, null, null];
-
-    // first mark correct letters, then go through everything else
-    const guessChars  = guess.split('');
-    const targetChars = this.#target.split('');
-
-    targetChars.forEach((char, idx) => {
-      if (guess.charAt(idx) === char) {
-        results[idx] = CORRECT;
-        guessChars[idx] = null;
-        targetChars[idx] = null;
-      }
-    });
-
-    // here, all the correct letters are marked, and we have some letters that
-    // aren't in the word at all, and some that are in the wrong place
-
-    guessChars.forEach((char, idx) => {
-      if (char === null) {
-        // already accounted for
-        return;
-      }
-
-      const foundIdx = targetChars.indexOf(char);
-
-      if (foundIdx !== -1) {
-        results[idx] = MISPLACED;
-        targetChars[foundIdx] = null;
-      } else {
-        results[idx] = WRONG;
-      }
-    });
-
-    return results;
-  }
 };
 
-export { Game };
+export { Game, Score };
