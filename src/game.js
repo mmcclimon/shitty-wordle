@@ -87,10 +87,11 @@ const Game = class {
 
   #filterWordList (guess, results) {
     const guessChars = guess.split('');
-    let words = this.wordlist;
 
     const charCounts = new Map();
     const inWordCounts = new Map();
+
+    const filters = [];
 
     // grab all the correct letters
     guessChars.forEach((char, idx) => {
@@ -101,7 +102,7 @@ const Game = class {
       }
 
       if (results[idx] === Score.CORRECT) {
-        words = words.filter(w => w.charAt(idx) === char);
+        filters.push(w => w.charAt(idx) === char);
       }
     });
 
@@ -111,7 +112,7 @@ const Game = class {
       const inWord = inWordCounts.get(char) || 0;
 
       if (count > inWord) {
-        words = words.filter(w => letterCount(w, char) <= inWord);
+        filters.push(w => letterCount(w, char) <= inWord);
       }
     }
 
@@ -119,11 +120,12 @@ const Game = class {
     // than is strictly necessary
     guessChars.forEach((char, idx) => {
       if (results[idx] === Score.MISPLACED) {
-        words = words.filter(w => letterCount(w, char) > 0 && w.charAt(idx) !== char);
+        filters.push(w => w.charAt(idx) !== char &&  letterCount(w, char) > 0);
       }
     });
 
-    return words;
+    const combinedFilter = filters.reduce((acc, f) => x => acc(x) && f(x));
+    return this.wordlist.filter(combinedFilter);
   }
 };
 
